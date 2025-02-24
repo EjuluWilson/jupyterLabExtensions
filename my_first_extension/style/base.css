@@ -1,15 +1,57 @@
-/*
-    See the JupyterLab Developer Guide for useful CSS Patterns:
-
-    https://jupyterlab.readthedocs.io/en/stable/developer/css.html
-*/
-
-
-/* This styles the widget to vertically stack and center content */
-.my-apodWidget {
+.jp-ConversationWidget {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    overflow: auto; /* enables scrolling if content overflows */
+    padding: 10px;
+    height: 100%;
+  }
+  
+  .jp-ConversationOutput {
+    flex: 1;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-family: sans-serif;
+    font-size: 14px;
+  }
+  
+  .jp-ConversationInputContainer {
+    display: flex;
+  }
+  
+  .jp-ConversationInput {
+    flex: 1;
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 3px 0 0 3px;
+  }
+  
+  .jp-ConversationButton {
+    padding: 5px 10px;
+    font-size: 14px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border-radius: 0 3px 3px 0;
+  }
+  
+  .jp-ConversationButton:hover {
+    background-color: #0056b3;
+  }
+  
+  .jp-UserMessage, .jp-SystemMessage {
+    margin-bottom: 8px;
+  }
+  
+  .jp-UserMessage {
+    color: #333;
+  }
+  
+  .jp-SystemMessage {
+    color: #007bff;
   }
   
