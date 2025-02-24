@@ -6,55 +6,112 @@ import {
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
 
+
+// APOD Response structure
+interface APODResponse {
+  copyright: string;
+  date: string;
+  explanation: string;
+  media_type: 'video' | 'image';
+  title: string;
+  url: string;
+};
+
 /**
  * Initialization data for the jupyterlab_apod extension.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab-apod',
-  description:
-    'Show a random NASA Astronomy Picture of the Day in a JupyterLab panel.',
+  description: 'Show a random NASA Astronomy Picture in a panel.',
   autoStart: true,
   requires: [ICommandPalette],
-  activate: (app: JupyterFrontEnd, palette: ICommandPalette) => {
-    console.log('JupyterLab extension jupyterlab_apod is activated!');
+  
+  // Activate is called by JupyterLab when your extension loads
+  activate: async (app: JupyterFrontEnd, palette: ICommandPalette) => {
+    
+    // Initial widget creation
+    let widget = await newWidget();
 
-    // Define a widget creator function,
-    // then call it to make a new widget
-    const newWidget = () => {
-      // Create a blank content widget inside of a MainAreaWidget
-      const content = new Widget();
-      content.node.innerHTML = `
-      <h1>Hello!</h1>
-      <p>This is a widget inside JupyterLab.</p>`;
-      const widget = new MainAreaWidget({ content });
-      widget.id = 'apod-jupyterlab';
-      widget.title.label = 'Astronomy Picture';
-      widget.title.closable = true;
-      return widget;
-    };
-    let widget = newWidget();
-
-    // Add an application command
+    // Define a unique command identifier
     const command: string = 'apod:open';
+
+    // Add a new command to JupyterLab
     app.commands.addCommand(command, {
       label: 'Random Astronomy Picture',
-      execute: () => {
-        // Regenerate the widget if disposed
+
+      // This is called whenever the command is triggered
+      execute: async () => {
+        // If widget is closed, recreate it
         if (widget.isDisposed) {
-          widget = newWidget();
+          widget = await newWidget();
         }
+        
+        // Add the widget to the main area if not already there
         if (!widget.isAttached) {
-          // Attach the widget to the main work area if it's not there
           app.shell.add(widget, 'main');
         }
-        // Activate the widget
+
+        // Focus (activate) the widget's tab
         app.shell.activateById(widget.id);
       }
     });
 
-    // Add the command to the palette.
+    // Add this command to the command palette under "Tutorial"
     palette.addItem({ command, category: 'Tutorial' });
   }
+};
+
+// Async widget creation function (for fetching images)
+const newWidget = async () => {
+  
+  // Create a simple container for holding content
+  const content = new Widget();
+
+  // Embed our simple container widget within a MainAreaWidget
+  const widget = new MainAreaWidget({ content });
+  
+  widget.id = 'apod-jupyterlab';
+  widget.title.label = 'Astronomy Picture';
+  widget.title.closable = true;
+
+  // ---- NOW, new code is placed here (image handling) ----
+
+  // Create an HTML <img> element to display the APOD image
+  let img = document.createElement('img');
+
+  // Set some basic styling for the image
+  img.style.maxWidth = '100%';  // Image won't overflow container
+  img.style.display = 'block';  // Predictable display behavior
+
+  // Add the img element to the Widget's DOM node
+  content.node.appendChild(img);
+
+  // Helper function to generate a random date
+  function randomDate() {
+    const start = new Date(2010, 1, 1);
+    const end = new Date();
+    const randomDate = new Date(start.getTime() + Math.random()*(end.getTime() - start.getTime()));
+    return randomDate.toISOString().slice(0, 10);
+  }
+
+  // Fetch random image data from NASA's APOD API
+  const response = await fetch(
+    `https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date=${randomDate()}`
+  );
+  const data = await response.json() as APODResponse;
+
+  // If NASA provides an image, set its src and title
+  if (data.media_type === 'image') {
+    img.src = data.url;
+    img.title = data.title;
+  } else {
+    // Fallback text if API returns a video instead
+    img.alt = 'Today\'s APOD is a video. Try again!';
+  }
+
+  // ---- End of new code (image handling) ----
+
+  return widget;
 };
 
 export default plugin;
