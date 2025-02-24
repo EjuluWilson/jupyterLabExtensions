@@ -3,3 +3,13 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+
+
+/* This styles the widget to vertically stack and center content */
+.my-apodWidget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: auto; /* enables scrolling if content overflows */
+  }
+  
