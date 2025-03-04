@@ -1,3 +1,4 @@
+// src/index.ts
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
@@ -5,84 +6,43 @@ import {
 
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import { ConversationPanel } from './components/ConversationPanel';
 
 /**
- * A simple conversational sidebar widget for JupyterLab.
+ * A widget that hosts our React component
  */
-class ConversationWidget extends Widget {
-  inputNode: HTMLInputElement;
-  buttonNode: HTMLButtonElement;
-  outputNode: HTMLDivElement;
-
+class ReactWidget extends Widget {
   constructor() {
     super();
-    this.addClass('jp-ConversationWidget');
-
-    // Create output container
-    this.outputNode = document.createElement('div');
-    this.outputNode.className = 'jp-ConversationOutput';
-    this.node.appendChild(this.outputNode);
-
-    // Create input container
-    const inputContainer = document.createElement('div');
-    inputContainer.className = 'jp-ConversationInputContainer';
-
-    this.inputNode = document.createElement('input');
-    this.inputNode.type = 'text';
-    this.inputNode.placeholder = 'Ask a question...';
-    this.inputNode.className = 'jp-ConversationInput';
-
-    this.buttonNode = document.createElement('button');
-    this.buttonNode.textContent = 'Send';
-    this.buttonNode.className = 'jp-ConversationButton';
-
-    inputContainer.appendChild(this.inputNode);
-    inputContainer.appendChild(this.buttonNode);
-    this.node.appendChild(inputContainer);
-
-    // Bind event listeners
-    this.buttonNode.onclick = () => this.onSend();
-    this.inputNode.onkeypress = (event) => {
-      if (event.key === 'Enter') this.onSend();
-    };
+    this.addClass('jp-ReactWidget');
   }
 
-  /**
-   * Handles the send button click or enter key press
-   */
-  private onSend(): void {
-    const text = this.inputNode.value.trim();
-    if (!text) return;
+  render(): void {
+    ReactDOM.render(React.createElement(ConversationPanel), this.node);
+  }
 
-    // Display user's input
-    const userMessage = document.createElement('div');
-    userMessage.className = 'jp-UserMessage';
-    userMessage.textContent = `User: ${text}`;
-    this.outputNode.appendChild(userMessage);
+  onAfterAttach(): void {
+    this.render();
+  }
 
-    // Simulate system response
-    const systemMessage = document.createElement('div');
-    systemMessage.className = 'jp-SystemMessage';
-    systemMessage.textContent = `System: Received "${text}"`;
-    this.outputNode.appendChild(systemMessage);
-
-    // Scroll to bottom of output
-    this.outputNode.scrollTop = this.outputNode.scrollHeight;
-
-    // Clear input field
-    this.inputNode.value = '';
+  onBeforeDetach(): void {
+    // Clean up React when widget is removed
+    ReactDOM.unmountComponentAtNode(this.node);
   }
 }
 
 /**
- * Activate function to initialize and add the sidebar widget
+ * Activate function to initialize and add the widget
  */
 function activate(app: JupyterFrontEnd, palette: ICommandPalette) {
   console.log('Conversational notebook assistant UI activated!');
 
-  const conversationWidget = new ConversationWidget();
+  // Create the React widget
+  const conversationWidget = new ReactWidget();
   conversationWidget.id = 'conversation-widget';
-  conversationWidget.title.iconClass = 'jp-ChatIcon';
+  conversationWidget.title.iconClass = 'jp-ChatIcon'; // Make sure this icon exists
   conversationWidget.title.caption = 'Notebook Assistant';
 
   // Add widget to the left sidebar
